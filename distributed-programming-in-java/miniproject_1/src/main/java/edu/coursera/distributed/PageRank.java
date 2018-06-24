@@ -6,6 +6,8 @@ import java.util.List;
 
 import scala.Tuple2;
 
+import com.google.common.collect.Lists;
+
 import org.apache.spark.api.java.JavaPairRDD;
 
 /**
@@ -71,50 +73,25 @@ public final class PageRank {
         .reduceByKey((a, b) -> a + b)
         .mapValues((v) -> 0.15 + 0.85 * v);
   }
+
+  public static JavaPairRDD<Integer, Double> sparkPageRankSingleCore(
+      final JavaPairRDD<Integer, Website> sites,
+      final JavaPairRDD<Integer, Double> ranks) {
+
+    return sites
+        .mapToPair(t -> new Tuple2<Integer, List<Integer>>(t._1, Lists.newArrayList(t._2.edgeIterator())))
+        .join(ranks)
+        .flatMapToPair((Tuple2<Integer, Tuple2<List<Integer>, Double>> t) -> {
+          final List<Integer> outbound = t._2._1;
+          final Double rank = t._2._2;
+          final List<Tuple2<Integer, Double>> results = new ArrayList<>(outbound.size());
+
+          for (Integer curr : outbound) {
+            results.add(new Tuple2<>(curr, rank / outbound.size()));
+          }
+          return results;
+        })
+        .reduceByKey((a, b) -> a + b)
+        .mapValues((v) -> 0.15 + 0.85 * v);
+  }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
