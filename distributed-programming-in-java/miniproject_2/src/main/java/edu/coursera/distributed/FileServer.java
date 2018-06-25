@@ -86,16 +86,17 @@ public final class FileServer {
       String content = fs.readFile(new PCDPPath(request.filePath));
 
       if (content == null) {
-        writer.write("HTTP/1.0 404 Not Found\r\n");
+        writer.write(String.format("%s 404 Not Found\r\n", request.protocol));
         writer.write("Server: FileServer\r\n");
         writer.write("\r\n");
       } else {
-        writer.write("HTTP/1.0 200 OK\r\n");
+        writer.write(String.format("%s 200 OK\r\n", request.protocol));
         writer.write("Server: FileServer\r\n");
         writer.write("\r\n");
         writer.write(String.format("%s\r\n", content));
       }
 
+      writer.flush();
       writer.close();
       s.close();
     }
